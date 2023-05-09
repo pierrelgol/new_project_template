@@ -1,26 +1,27 @@
-CC=gcc
-INCDIRS=-Isrc
-OPT=-O0
-BINAME=main
-CFLAGS=-Wall -Wextra -g $(INCDIRS) $(OPT)
+CC = gcc
+CFLAGS = -g -Wall -Wextra -Wpedantic -std=c11
+SRC_DIR = src
+BIN_DIR = bin
 
-# Use wildcard to get all .c files in the src directory
-CFILES=$(wildcard src/*.c)
+# Find all .c files in the SRC_DIR and create an object file for each
+SRC_FILES = $(wildcard $(SRC_DIR)/*.c)
+OBJ_FILES = $(patsubst $(SRC_DIR)/%.c,$(BIN_DIR)/%.o,$(SRC_FILES))
 
-# Use patsubst to replace the .c extension with .o
-OBJECTS=$(patsubst src/%.c, src/%.o, $(CFILES))
+# Define the executable targets
+EXE_FILES = $(patsubst $(SRC_DIR)/%.c,$(BIN_DIR)/%,$(SRC_FILES))
 
-BINARY=$(wildcard bin/$(BINAME))
-all: $(BINARY)
+all: $(EXE_FILES)
 
-$(BINARY): $(OBJECTS)
-	$(CC) -o $@ $^
+$(BIN_DIR)/%: $(BIN_DIR)/%.o
+	$(CC) $(CFLAGS) $< -o $@
 
-# Use wildcard to get all .o files in the src directory
-src/%.o: src/%.c src/%.h
+$(BIN_DIR)/%.o: $(SRC_DIR)/%.c | $(BIN_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
+$(BIN_DIR):
+	mkdir -p $(BIN_DIR)
+
 clean:
-	rm -rf $(BINARY) $(OBJECTS)
+	rm -rf $(BIN_DIR)/*
 
-
+.PHONY: all clean
